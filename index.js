@@ -81,7 +81,7 @@ app.listen(PORT, () => {
    setTimeout(async () => {
     try {
       const response = await axios.post(
-        `${process.env.GRAFANA_LOKI_URL}/loki/api/v1/push`,
+        `${process.env.GRAFANA_LOKI_URL}/loki/api/v1/labels`,
         {
           streams: [
             {
