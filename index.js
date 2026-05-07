@@ -1,5 +1,4 @@
 require("dotenv").config()
-require('newrelic');
 
 const express = require("express")
 const cors = require("cors")
@@ -73,4 +72,5 @@ app.get("/", (req, res) => {
 
 app.listen(PORT, () => {
     console.log("Server is running on", PORT);
+    logger.info("Server started successfully", { port: PORT });
 })
