@@ -30,7 +30,7 @@ if (process.env.NODE_ENV !== 'production') {
 if (process.env.NODE_ENV === 'production') {
   logger.add(
     new LokiTransport({
-      host: process.env.GRAFANA_LOKI_URL,
+      host: `${process.env.GRAFANA_LOKI_URL}/loki/api/v1/push`,
       basicAuth: `${process.env.GRAFANA_USER}:${process.env.GRAFANA_API_KEY}`,
       labels: {
         app: process.env.APP_NAME || 'aass-server',
