@@ -78,30 +78,4 @@ app.listen(PORT, () => {
   console.log("Server is running on", PORT);
   logger.info("Server started successfully", { port: PORT });
 
-   setTimeout(async () => {
-    try {
-      const response = await axios.post(
-        `${process.env.GRAFANA_LOKI_URL}/loki/api/v1/labels`,
-        {
-          streams: [
-            {
-              stream: { app: process.env.APP_NAME },
-              values: [[`${Date.now() * 1000000}`, 'test log from render']]
-            }
-          ]
-        },
-        {
-          auth: {
-            username: process.env.GRAFANA_USER,
-            password: process.env.GRAFANA_API_KEY
-          },
-          headers: { 'Content-Type': 'application/json' }
-        }
-      )
-      console.log('Loki test success:', response.status)
-    } catch (err) {
-      console.error('Loki test failed:', err.response?.status, err.response?.data || err.message)
-    }
-  }, 5000)
-
 })
