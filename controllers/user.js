@@ -7,7 +7,7 @@ const logger = require('../utils/logger');
 
 async function handleSignup(req, res) {
     const { name, email, password, mobileNumber, batch, registrationNo, isAridian, university } = req.body;
-    logger.info("user_signup_attempt", { email });
+    
 
     try {
         if (!name || !email || !password) {
@@ -64,14 +64,12 @@ async function handleSignup(req, res) {
             `
         });
 
-        logger.info("user_signup_success", { userId: newUser._id, email });
         res.status(201).json({
             success: true,
             message: "User created. Verification email sent!",
         });
 
     } catch (error) {
-        logger.error("user_signup_failed", { email, error: error.message });
         res.status(500).json({ success: false, message: 'Something went wrong', error: error.message });
     }
 }
@@ -115,7 +113,7 @@ async function handleLogin(req, res) {
         // Exclude password before sending response
         const { password: _, ...userData } = foundUser.toObject();
 
-        logger.info("user_login_success", { userId: foundUser._id });
+        logger.info("user_login_success", { userId: foundUser._id, email });
         res.status(200).json({ message: 'Login successful', token, data: userData });
     } catch (error) {
         res.status(500).json({ message: 'Something went wrong', error: error.message });

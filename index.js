@@ -4,13 +4,13 @@ require('newrelic');
 const express = require("express")
 const cors = require("cors")
 const multer = require("multer")
-const morgan = require("morgan");
-const logger = require('./utils/logger');
 const { connectToMongo } = require("./connections")
 const http = require("http");
 const socketIO = require("socket.io");
 const initSocket = require("./socket")
 const cookieParser = require("cookie-parser");
+const morgan = require("morgan");
+const logger = require("./utils/logger");
 
 // Initializing App
 const app = express()
@@ -26,16 +26,6 @@ io.listen(5000)
 initSocket(io);
 connectToMongo(process.env.MONGO_URI || "mongodb://localhost:27017/AASS")
 
-// Middlewares
-const morganFormat = ":method :url :status :response-time ms";
-
-app.use(
-  morgan(morganFormat, {
-    stream: {
-      write: (message) => logger.http(message.trim()),
-    },
-  })
-);
 
 app.use(cors({
     origin: ["http://localhost:3000", "http://localhost:3001", "https://aass-client.vercel.app", "https://aass-client.onrender.com"],
@@ -48,6 +38,18 @@ app.use(express.urlencoded({ extended: true }))
 // Multer setup for handling form-data
 const upload = multer()
 app.use(upload.any())
+
+// Morgan middleware using winston stream
+app.use(morgan("combined", { stream: { write: message => logger.http(message.trim()) } }));
+
+// Health Check Route
+app.get("/health", (req, res) => {
+    res.status(200).json({
+        status: "ok",
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime()
+    });
+});
 
 
 // Routes

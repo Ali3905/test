@@ -1,6 +1,7 @@
 const express = require('express');
 const { handleSignup, handleLogin, handleGetCabinetMembers, handleGetUserProfile, handleCheckAuth, handleLogout, verifyEmail } = require('../controllers/user');
 const { verifyUser } = require('../middleware/user');
+const logger = require('../utils/logger');
 
 const router = express.Router();
 

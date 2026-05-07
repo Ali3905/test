@@ -1,48 +1,46 @@
 const winston = require('winston');
-const newrelicFormatter = require('@newrelic/winston-enricher')(winston);
-
-const levels = {
-  error: 0,
-  warn: 1,
-  info: 2,
-  http: 3,
-};
-
-const level = () => {
-  const env = process.env.NODE_ENV || 'development';
-  const isDevelopment = env === 'development';
-  return isDevelopment ? 'http' : 'info';
-};
-
-const colors = {
-  error: 'red',
-  warn: 'yellow',
-  info: 'green',
-  http: 'magenta',
-};
-
-winston.addColors(colors);
-
-const format = winston.format.combine(
-  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
-  winston.format.colorize({ all: true }),
-  winston.format.printf(
-    (info) => `${info.timestamp} ${info.level}: ${info.message}`
-  )
-);
-
-const transports = [
-  new winston.transports.Console({
-    format: process.env.NODE_ENV === 'production' 
-      ? winston.format.combine(winston.format.json(), newrelicFormatter())
-      : format,
-  }),
-];
+const LokiTransport = require('winston-loki');
+require('dotenv').config();
 
 const logger = winston.createLogger({
-  level: level(),
-  levels,
-  transports,
+  level: 'http',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json()
+  ),
+  transports: [],
 });
+
+// Console transport for non-production environments
+if (process.env.NODE_ENV !== 'production') {
+  logger.add(
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+        winston.format.printf(({ timestamp, level, message }) => {
+          return `${timestamp} ${level}: ${message}`;
+        })
+      ),
+    })
+  );
+}
+
+// Loki transport for production environment
+if (process.env.NODE_ENV === 'production') {
+  logger.add(
+    new LokiTransport({
+      host: process.env.GRAFANA_LOKI_URL,
+      basicAuth: `${process.env.GRAFANA_USER}:${process.env.GRAFANA_API_KEY}`,
+      labels: {
+        app: process.env.APP_NAME || 'aass-server',
+      },
+      json: true,
+      format: winston.format.json(),
+      replaceTimestamp: true,
+      onConnectionError: (err) => console.error('Loki connection error:', err),
+    })
+  );
+}
 
 module.exports = logger;
